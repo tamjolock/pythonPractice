@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Real-time Object Detection with TensorFlow.js and COCO-SSD</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.10.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@3.0.0/dist/coco-ssd.min.js"></script>
+  </head>
+  <body>
+    <video id="webcam" width="640" height="480" autoplay></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+    <script>
+      const video = document.getElementById('webcam');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Load the COCO-SSD model
+      cocoSsd.load().then(model => {
+        console.log('Model loaded');
+
+        // Start the webcam stream
+        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+          video.srcObject = stream;
+          video.addEventListener('loadeddata', () => {
+            console.log('Video loaded');
+
+            // Run object detection on each frame
+            setInterval(() => {
+              model.detect(video).then(predictions => {
+                console.log(predictions);
+
+                // Draw bounding boxes on the canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (const prediction of predictions) {
+                  ctx.beginPath();
+                  ctx.strokeStyle = 'red';
+                  ctx.lineWidth = 2;
+                  ctx.rect(prediction.bbox[0], prediction.bbox[1], prediction.bbox[2], prediction.bbox[3]);
+                  ctx.stroke();
+                }
+              });
+            }, 1000 / 30); // 30 frames per second
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
